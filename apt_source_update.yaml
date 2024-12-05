@@ -1,6 +1,6 @@
 ---
 - name: Configure APT sources and install required packages
-  hosts: site
+  hosts: all
   become: true
   tasks:
     - name: Add USTC mirrors to /etc/apt/sources.list
