@@ -1,0 +1,26 @@
+- name: Install and configure apt-cacher-ng on target nodes
+  hosts: all
+  become: true
+  tasks:
+    - name: Update apt package cache
+      apt:
+        update_cache: yes
+    - name: Pre-seed apt-cacher-ng configuration to select "Yes"
+      debconf:
+        name: apt-cacher-ng
+        question: "apt-cacher-ng/choose-yes"
+        value: "true"
+        vtype: boolean
+    - name: Install apt-cacher-ng
+      apt:
+        name: apt-cacher-ng
+        state: present
+        force: yes
+    - name: Configure HTTP proxy for apt
+      copy:
+        content: 'Acquire::http::Proxy "http://10.32.32.5:3142";'
+        dest: /etc/apt/apt.conf.d/02proxy
+        mode: '0644'
+    - name: Update apt package cache after configuration
+      apt:
+        update_cache: yes
