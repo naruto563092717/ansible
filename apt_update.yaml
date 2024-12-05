@@ -1,5 +1,5 @@
 - name: Update apt packages on hosts
-  hosts: site
+  hosts: all
   become: true
   tasks:
     - name: Update apt cache
