@@ -1,0 +1,22 @@
+---
+- name: Configure APT sources and install required packages
+  hosts: site
+  become: true
+  tasks:
+    - name: Add USTC mirrors to /etc/apt/sources.list
+      blockinfile:
+        path: /etc/apt/sources.list
+        block: |
+          deb https://mirrors.ustc.edu.cn/ubuntu/ focal main restricted universe multiverse
+          deb-src https://mirrors.ustc.edu.cn/ubuntu/ focal main restricted universe multiverse
+          deb https://mirrors.ustc.edu.cn/ubuntu/ focal-updates main restricted universe multiverse
+          deb-src https://mirrors.ustc.edu.cn/ubuntu/ focal-updates main restricted universe multiverse
+          deb https://mirrors.ustc.edu.cn/ubuntu/ focal-backports main restricted universe multiverse
+          deb-src https://mirrors.ustc.edu.cn/ubuntu/ focal-backports main restricted universe multiverse
+          deb https://mirrors.ustc.edu.cn/ubuntu/ focal-security main restricted universe multiverse
+          deb-src https://mirrors.ustc.edu.cn/ubuntu/ focal-security main restricted universe multiverse
+          deb https://mirrors.ustc.edu.cn/ubuntu/ focal-proposed main restricted universe multiverse
+          deb-src https://mirrors.ustc.edu.cn/ubuntu/ focal-proposed main restricted universe multiverse
+    - name: Update apt package cache
+      apt:
+        update_cache: yes
