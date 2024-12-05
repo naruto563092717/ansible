@@ -1,0 +1,7 @@
+- name: Update apt packages on hosts
+  hosts: site
+  become: true  # Ensures commands run with elevated privileges
+  tasks:
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: yes
