@@ -1,4 +1,4 @@
-- name: Configure APT sources and install required packages
+- name: Configure APT sources to ustc.edu.cn
   hosts: all
   become: true
   tasks:
