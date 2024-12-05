@@ -1,4 +1,3 @@
----
 - name: Configure APT sources and install required packages
   hosts: all
   become: true
