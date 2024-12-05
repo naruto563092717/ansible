@@ -1,0 +1,34 @@
+- name: Install required packages
+  hosts: all
+  become: true
+  tasks:
+    - name: Install required packages
+      apt:
+        name:
+          - nfs-common
+          - pkg-config
+          - flex
+          - libltdl-dev
+          - libgfortran5
+          - gfortran
+          - m4
+          - libfuse2
+          - dkms
+          - graphviz
+          - debhelper
+          - libnl-3-dev
+          - chrpath
+          - quilt
+          - automake
+          - tk
+          - autotools-dev
+          - swig
+          - bison
+          - autoconf
+          - libnl-route-3-dev
+          - libtool
+          - libboost-program-options-dev
+          - gnupg
+          - curl
+        state: present
+        force: yes
