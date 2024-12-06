@@ -1,16 +1,47 @@
 ---
-- name: Install CUDA Toolkit
-  hosts: all
-  become: true
+- hosts: all
+  become: yes
   tasks:
-    - name: Run the CUDA installer script
-      command: sh /home/ubuntu/nfs/cuda/cuda_12.4.0_550.54.14_linux.run --silent --toolkit --samples --no-dkms
+    - name: Run the CUDA installer script with driver
+      command: >
+        sh /home/ubuntu/nfs/cuda/cuda_12.4.0_550.54.14_linux.run
+        --silent
+        --toolkit
+        --samples
+        --driver
       args:
         chdir: /home/ubuntu/nfs/cuda
       register: cuda_install_output
       environment:
         ACCEPT_EULA: "accept"
-    
+
     - name: Check the CUDA installer output
       debug:
         var: cuda_install_output.stdout
+
+    - name: Add CUDA to PATH permanently
+      lineinfile:
+        path: /etc/profile.d/cuda.sh
+        create: yes
+        line: 'export PATH=/usr/local/cuda-12.4/bin${PATH:+:${PATH}}'
+        state: present
+        mode: '0644'
+
+    - name: Apply CUDA PATH for current session
+      shell: "export PATH=/usr/local/cuda-12.4/bin${PATH:+:${PATH}}"
+      environment:
+        PATH: "/usr/local/cuda-12.4/bin:{{ ansible_env.PATH }}"
+
+    - name: Start NVIDIA Persistence Daemon
+      command: "/usr/bin/nvidia-persistenced --verbose"
+
+    - name: Load the `nvidia-peermem` kernel module
+      modprobe:
+        name: nvidia-peermem
+        state: present
+
+    - name: Ensure `nvidia-peermem` is loaded on boot
+      lineinfile:
+        path: /etc/modules
+        line: "nvidia-peermem"
+        state: present
