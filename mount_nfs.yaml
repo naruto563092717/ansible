@@ -1,0 +1,27 @@
+- name: Configure NFS mount
+  hosts: all
+  become: true
+  tasks:
+    - name: Ensure the NFS directory exists
+      file:
+        path: /home/ubuntu/nfs
+        state: directory
+        owner: ubuntu
+        group: ubuntu
+        mode: '0755'
+
+    - name: Mount NFS share
+      mount:
+        path: /home/ubuntu/nfs
+        src: 10.32.32.5:/home/user/nvme
+        fstype: nfs
+        opts: defaults
+        state: mounted
+
+    - name: Verify disk usage
+      shell: df -h
+      register: disk_usage
+
+    - name: Display disk usage
+      debug:
+        var: disk_usage.stdout
