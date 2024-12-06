@@ -1,0 +1,31 @@
+---
+- hosts: all
+  become: yes
+  tasks:
+    # Step 1: Install the NCCL local repository package
+    - name: Install NCCL repository package
+      command: dpkg -i /home/ubuntu/nfs/nccl/nccl-local-repo-ubuntu2204-2.22.3-cuda12.4_1.0-1_amd64.deb
+      register: nccl_dpkg_install
+      ignore_errors: yes  # Allows retries in case keyring setup is missing
+
+    # Step 2: Update package list
+    - name: Update package list
+      apt:
+        update_cache: yes
+
+    # Step 3: Install NCCL libraries
+    - name: Install NCCL libraries
+      apt:
+        name:
+          - libnccl2
+          - libnccl-dev
+        state: present
+
+    # Step 4: Verify NCCL version from the header file
+    - name: Check NCCL version
+      command: grep -i version /usr/include/nccl.h
+      register: nccl_version_output
+
+    - name: Display NCCL version
+      debug:
+        var: nccl_version_output.stdout
