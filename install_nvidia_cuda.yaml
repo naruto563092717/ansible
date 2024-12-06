@@ -4,7 +4,7 @@
   become: true
   tasks:
     - name: Run the CUDA installer script
-      command: sh /nfs/cuda/cuda_12.4.0_550.54.14_linux.run --silent --toolkit --samples --no-dkms
+      command: sh ~/nfs/cuda/cuda_12.4.0_550.54.14_linux.run --silent --toolkit --samples --no-dkms
       args:
         chdir: /nfs/cuda
       register: cuda_install_output
