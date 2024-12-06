@@ -7,3 +7,11 @@
 
     - name: Bring up interface ibs844
       command: ip link set ibs844 up
+
+    - name: Run ibdev2netdev to map IB devices to network devices
+      command: ibdev2netdev
+      register: ibdev2netdev_output
+
+    - name: Display ibdev2netdev output
+      debug:
+        var: ibdev2netdev_output.stdout
