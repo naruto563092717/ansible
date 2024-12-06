@@ -3,10 +3,7 @@
   hosts: all
   become: yes
   tasks:
-    - name: Navigate to NCCL tests directory
-      command: cd /home/ubuntu/nccl-tests-2.13.11
-      args:
-        chdir: /home/ubuntu/nccl-tests-2.13.11
-
     - name: Build NCCL tests with MPI
       command: make MPI=1 MPI_HOME=/usr/lib/x86_64-linux-gnu/openmpi
+      args:
+        chdir: /home/ubuntu/nccl-tests-2.13.11
