@@ -1,0 +1,32 @@
+- name: Install Mellanox OFED
+  hosts: all
+  become: true
+  tasks:
+    - name: Extract Mellanox OFED package
+      unarchive:
+        src: /home/ubuntu/nfs/MLNX_OFED/MLNX_OFED_LINUX-24.04-0.7.0.0-ubuntu22.04-x86_64.tgz
+        dest: /home/ubuntu/
+        remote_src: true
+
+    - name: Install Mellanox OFED
+      command:
+        cmd: ./mlnxofedinstall
+        chdir: /home/ubuntu/MLNX_OFED_LINUX-24.04-0.7.0.0-ubuntu22.04-x86_64
+      register: install_output
+
+    - name: Show installation output
+      debug:
+        var: install_output.stdout
+
+    - name: Restart OpenIBD service
+      service:
+        name: openibd
+        state: restarted
+        
+    - name: Verify Mellanox OFED version
+      command: cat /sys/module/mlx5_core/version
+      register: mlx5_version
+
+    - name: Show Mellanox OFED version
+      debug:
+        msg: "Installed Mellanox OFED version: {{ mlx5_version.stdout }}"
