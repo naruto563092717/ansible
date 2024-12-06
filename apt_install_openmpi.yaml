@@ -1,0 +1,34 @@
+---
+- hosts: all
+  become: yes
+  tasks:
+    - name: Update apt package list
+      apt:
+        update_cache: yes
+
+    - name: Install required packages
+      apt:
+        name:
+          - libpmix-dev
+          - libfabric-dev
+          - libev-dev
+          - zlib1g-dev
+          - infiniband-diags
+          - ibverbs-utils
+          - libibverbs-dev
+          - libfabric1
+          - libpsm2-dev
+          - openmpi-bin
+          - openmpi-common
+          - libopenmpi-dev
+          - libgtk2.0-dev
+          - librdmacm-dev
+        state: present
+
+    - name: Check OpenMPI version
+      command: mpirun --version
+      register: mpirun_version
+
+    - name: Show OpenMPI version
+      debug:
+        var: mpirun_version.stdout
