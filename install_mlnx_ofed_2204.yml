@@ -8,9 +8,9 @@
         dest: /home/ubuntu/
         remote_src: true
 
-    - name: Install Mellanox OFED
-      command:
-        cmd: ./mlnxofedinstall
+    - name: Install Mellanox OFED with confirmation
+      shell: echo "y" | ./mlnxofedinstall
+      args:
         chdir: /home/ubuntu/MLNX_OFED_LINUX-24.04-0.7.0.0-ubuntu22.04-x86_64
       register: install_output
 
