@@ -2,6 +2,7 @@
 - hosts: all
   become: yes
   tasks:
+    # Install CUDA
     - name: Run the CUDA installer script with driver
       command: >
         sh /home/ubuntu/nfs/cuda/cuda_12.4.0_550.54.14_linux.run
@@ -11,15 +12,16 @@
         --driver
       args:
         chdir: /home/ubuntu/nfs/cuda
-      register: cuda_install_output
       environment:
         ACCEPT_EULA: "accept"
+      register: cuda_install_output
 
-    - name: Check the CUDA installer output
+    - name: Check CUDA installer output
       debug:
         var: cuda_install_output.stdout
 
-    - name: Add CUDA to PATH permanently
+    # Configure PATH and NVIDIA persistence daemon
+    - name: Add CUDA to PATH temporarily
       lineinfile:
         path: /etc/profile.d/cuda.sh
         create: yes
@@ -45,3 +47,30 @@
         path: /etc/modules
         line: "nvidia-peermem"
         state: present
+
+    # Verify NVIDIA driver and CUDA installation
+    - name: Check NVIDIA driver version
+      command: cat /proc/driver/nvidia/version
+      register: driver_version_output
+
+    - name: Display NVIDIA driver version
+      debug:
+        var: driver_version_output.stdout
+
+    - name: Check CUDA compiler version
+      command: nvcc --version
+      register: cuda_version_output
+      failed_when: "'not found' in cuda_version_output.stdout"
+
+    - name: Display CUDA compiler version
+      debug:
+        var: cuda_version_output.stdout
+
+    - name: Check NVIDIA GPU status
+      command: nvidia-smi
+      register: nvidia_smi_output
+      failed_when: "'not found' in nvidia_smi_output.stdout"
+
+    - name: Display NVIDIA GPU status
+      debug:
+        var: nvidia_smi_output.stdout
