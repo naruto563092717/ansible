@@ -1,0 +1,8 @@
+---
+- hosts: all
+  tasks:
+    - name: Copy NCCL tests directory
+      copy:
+        src: /home/ubuntu/nfs/nccl/nccl-tests-2.13.11
+        dest: /home/ubuntu/
+        remote_src: yes
