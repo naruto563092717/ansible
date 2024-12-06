@@ -6,15 +6,25 @@
     - name: Install NCCL repository package
       command: dpkg -i /home/ubuntu/nfs/nccl/nccl-local-repo-ubuntu2204-2.22.3-cuda12.4_1.0-1_amd64.deb
       register: nccl_dpkg_install
-      # Allows retries in case keyring setup is missing
-      ignore_errors: yes
+      ignore_errors: yes  # Allows retries in case keyring setup is missing
 
-    # Step 2: Update package list
+    # Step 2: Copy the keyring file to the trusted keyrings directory
+    - name: Copy NCCL keyring file
+      copy:
+        src: /var/nccl-local-repo-ubuntu2204-2.22.3-cuda12.4/nccl-local-E724FA40-keyring.gpg
+        dest: /usr/share/keyrings/
+        remote_src: yes
+
+    # Step 3: Re-run dpkg to ensure the package is properly installed
+    - name: Reinstall NCCL repository package
+      command: dpkg -i /home/ubuntu/nfs/nccl/nccl-local-repo-ubuntu2204-2.22.3-cuda12.4_1.0-1_amd64.deb
+
+    # Step 4: Update package list
     - name: Update package list
       apt:
         update_cache: yes
 
-    # Step 3: Install NCCL libraries
+    # Step 5: Install NCCL libraries
     - name: Install NCCL libraries
       apt:
         name:
@@ -22,7 +32,7 @@
           - libnccl-dev
         state: present
 
-    # Step 4: Verify NCCL version from the header file
+    # Step 6: Verify NCCL version from the header file
     - name: Check NCCL version
       command: grep -i version /usr/include/nccl.h
       register: nccl_version_output
