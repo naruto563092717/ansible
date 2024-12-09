@@ -24,7 +24,7 @@
 
     - name: Add ip rule for traffic from 192.1.2.33 to table 102
       ansible.builtin.command:
-        cmd: "ip rule add from {{ ip_base2 }}{{ node_octet }} table 102"
+        cmd: "ip rule add from {{ ip_base2 }}.{{ node_octet }} table 102"
 
     - name: Debug - Verify routes in table 101
       ansible.builtin.command:
