@@ -1,0 +1,18 @@
+- name: Configure IP addresses on nodes
+  hosts: all
+  become: true
+  vars:
+    ip_base1: "192.1.1"
+    ip_base2: "192.1.2"
+  tasks:
+    - name: Extract the last octet from inventory_hostname
+      ansible.builtin.set_fact:
+        last_octet: "{{ inventory_hostname.split('.')[-1] }}"
+
+    - name: Add IP address to ens844np0
+      ansible.builtin.command:
+        cmd: "ip addr add {{ ip_base1 }}.{{ last_octet }}/24 dev ens844np0"
+
+    - name: Add IP address to ens948np0
+      ansible.builtin.command:
+        cmd: "ip addr add {{ ip_base2 }}.{{ last_octet }}/24 dev ens948np0"
