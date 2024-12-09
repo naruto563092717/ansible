@@ -7,15 +7,15 @@
   tasks:
     - name: Extract the last octet from inventory_hostname
       ansible.builtin.set_fact:
-        last_octet: "{{ inventory_hostname.split('.')[-1] }}"
+        node_octet: "{{ inventory_hostname.split('.')[2] }}"
 
     - name: Add IP address to ens844np0
       ansible.builtin.command:
-        cmd: "ip addr add {{ ip_base1 }}.{{ last_octet }}/24 dev ens844np0"
+        cmd: "ip addr add {{ ip_base1 }}.{{ node_octet }}/24 dev ens844np0"
 
     - name: Add IP address to ens948np0
       ansible.builtin.command:
-        cmd: "ip addr add {{ ip_base2 }}.{{ last_octet }}/24 dev ens948np0"
+        cmd: "ip addr add {{ ip_base2 }}.{{ node_octet }}/24 dev ens948np0"
 
     - name: Verify IP address on ens844np0
       ansible.builtin.command:
