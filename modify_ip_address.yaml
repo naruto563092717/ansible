@@ -16,3 +16,13 @@
     - name: Add IP address to ens948np0
       ansible.builtin.command:
         cmd: "ip addr add {{ ip_base2 }}.{{ last_octet }}/24 dev ens948np0"
+
+    - name: Verify IP address on ens844np0
+      ansible.builtin.command:
+        cmd: "ip addr show dev ens844np0"
+      register: ens844np0_output
+
+    - name: Verify IP address on ens948np0
+      ansible.builtin.command:
+        cmd: "ip addr show dev ens948np0"
+      register: ens948np0_output
