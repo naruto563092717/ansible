@@ -6,21 +6,21 @@
     ip_base1: "192.1.1"
     ip_base2: "192.1.2"
   tasks:
-    - name: Extract the last octet from inventory_hostname
-      ansible.builtin.set_fact:
-        node_octet: "{{ inventory_hostname.split('.')[2] }}"
-
-    - name: Add route for 192.1.0.0/16 via 192.1.1.254 on ens844np0 to table 101
-      ansible.builtin.command:
-        cmd: "ip route add 192.1.0.0/16 via {{ ip_base1 }}.254 dev ens844np0 table 101"
-
-    - name: Add route for 192.1.0.0/16 via 192.1.2.254 on ens948np0 to table 102
-      ansible.builtin.command:
-        cmd: "ip route add 192.1.0.0/16 via {{ ip_base2 }}.254 dev ens948np0 table 102"
-
-    - name: Add ip rule for traffic from 192.1.1.33 to table 101
-      ansible.builtin.command:
-        cmd: "ip rule add from {{ ip_base1 }}.{{ node_octet }} table 101"
+#    - name: Extract the last octet from inventory_hostname
+#      ansible.builtin.set_fact:
+#        node_octet: "{{ inventory_hostname.split('.')[2] }}"
+#
+#    - name: Add route for 192.1.0.0/16 via 192.1.1.254 on ens844np0 to table 101
+#      ansible.builtin.command:
+#        cmd: "ip route add 192.1.0.0/16 via {{ ip_base1 }}.254 dev ens844np0 table 101"
+#
+#    - name: Add route for 192.1.0.0/16 via 192.1.2.254 on ens948np0 to table 102
+#      ansible.builtin.command:
+#        cmd: "ip route add 192.1.0.0/16 via {{ ip_base2 }}.254 dev ens948np0 table 102"
+#
+#    - name: Add ip rule for traffic from 192.1.1.33 to table 101
+#      ansible.builtin.command:
+#        cmd: "ip rule add from {{ ip_base1 }}.{{ node_octet }} table 101"
 
     - name: Add ip rule for traffic from 192.1.2.33 to table 102
       ansible.builtin.command:
