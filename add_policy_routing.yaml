@@ -6,9 +6,9 @@
     ip_base1: "192.1.1"
     ip_base2: "192.1.2"
   tasks:
-#    - name: Extract the last octet from inventory_hostname
-#      ansible.builtin.set_fact:
-#        node_octet: "{{ inventory_hostname.split('.')[2] }}"
+    - name: Extract the last octet from inventory_hostname
+      ansible.builtin.set_fact:
+        node_octet: "{{ inventory_hostname.split('.')[2] }}"
 #
 #    - name: Add route for 192.1.0.0/16 via 192.1.1.254 on ens844np0 to table 101
 #      ansible.builtin.command:
