@@ -1,0 +1,8 @@
+---
+- hosts: all
+  tasks:
+    - name: Copy NCCL tests directory
+      copy:
+        src: /home/ubuntu/nfs/nccl/perftest-24.10.0
+        dest: /home/ubuntu/
+        remote_src: yes
