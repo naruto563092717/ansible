@@ -18,11 +18,11 @@
         
     - name: Set MTU for ens844np0
       ansible.builtin.command:
-        cmd: ip link set dev ens844np0 mtu 4096
+        cmd: ip link set dev ens844np0 mtu 4200
 
     - name: Set MTU for ens948np0
       ansible.builtin.command:
-        cmd: ip link set dev ens948np0 mtu 4096
+        cmd: ip link set dev ens948np0 mtu 4200
 
     - name: Verify MTU for ens844np0
       ansible.builtin.command:
