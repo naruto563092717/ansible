@@ -1,0 +1,25 @@
+---
+- name: Install and build perftest
+  hosts: all
+  become: true
+  tasks:
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: yes
+
+    - name: Install libpci-dev
+      ansible.builtin.apt:
+        name: libpci-dev
+        state: present
+
+    - name: Navigate to perftest directory
+      ansible.builtin.shell:
+        cmd: "cd /home/ubuntu/perftest-* && ./autogen.sh && ./configure && make"
+        chdir: /home/ubuntu/perftest-*
+      args:
+        executable: /bin/bash
+
+    - name: Run make install
+      ansible.builtin.command:
+        cmd: "make install"
+        chdir: /home/ubuntu/perftest-*
