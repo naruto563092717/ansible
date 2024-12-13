@@ -1,0 +1,76 @@
+---
+- hosts: all
+  become: yes
+  tasks:
+    # Install CUDA
+    - name: Run the CUDA installer script with driver
+      command: >
+        sh /home/ubuntu/nfs/cuda/cuda_12.3.0_545.23.06_linux.run
+        --silent
+        --toolkit
+        --samples
+        --driver
+      args:
+        chdir: /home/ubuntu/nfs/cuda
+      environment:
+        ACCEPT_EULA: "accept"
+      register: cuda_install_output
+
+    - name: Check CUDA installer output
+      debug:
+        var: cuda_install_output.stdout
+
+    # Configure PATH and NVIDIA persistence daemon
+    - name: Add CUDA to PATH temporarily
+      lineinfile:
+        path: /etc/profile.d/cuda.sh
+        create: yes
+        line: 'export PATH=/usr/local/cuda-12.3/bin${PATH:+:${PATH}}'
+        state: present
+        mode: '0644'
+
+    - name: Apply CUDA PATH for current session
+      shell: "export PATH=/usr/local/cuda-12.3/bin${PATH:+:${PATH}}"
+      environment:
+        PATH: "/usr/local/cuda-12.4/bin:{{ ansible_env.PATH }}"
+
+    - name: Start NVIDIA Persistence Daemon
+      command: "/usr/bin/nvidia-persistenced --verbose"
+
+    - name: Load the `nvidia-peermem` kernel module
+      modprobe:
+        name: nvidia-peermem
+        state: present
+
+    - name: Ensure `nvidia-peermem` is loaded on boot
+      lineinfile:
+        path: /etc/modules
+        line: "nvidia-peermem"
+        state: present
+
+    # Verify NVIDIA driver and CUDA installation
+    - name: Check NVIDIA driver version
+      command: cat /proc/driver/nvidia/version
+      register: driver_version_output
+
+    - name: Display NVIDIA driver version
+      debug:
+        var: driver_version_output.stdout
+
+    - name: Check CUDA compiler version
+      command: nvcc --version
+      register: cuda_version_output
+      failed_when: "'not found' in cuda_version_output.stdout"
+
+    - name: Display CUDA compiler version
+      debug:
+        var: cuda_version_output.stdout
+
+    - name: Check NVIDIA GPU status
+      command: nvidia-smi
+      register: nvidia_smi_output
+      failed_when: "'not found' in nvidia_smi_output.stdout"
+
+    - name: Display NVIDIA GPU status
+      debug:
+        var: nvidia_smi_output.stdout
