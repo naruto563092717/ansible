@@ -2,6 +2,12 @@
   hosts: all
   become: true
   tasks:
+    - name: Install required packages
+      apt:
+        name:
+          - nfs-common
+        state: present
+        force: yes
     - name: Ensure the NFS directory exists
       file:
         path: /home/ubuntu/nfs
