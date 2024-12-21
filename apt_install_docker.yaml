@@ -56,3 +56,39 @@
     - name: Display Docker version
       ansible.builtin.debug:
         msg: "Docker installed: {{ docker_version.stdout }}"
+
+    - name: Create docker group
+      ansible.builtin.group:
+        name: docker
+        state: present
+
+    - name: Add current user to docker group
+      ansible.builtin.user:
+        name: "{{ ansible_user }}"
+        groups: docker
+        append: yes
+
+    - name: Apply new group membership
+      ansible.builtin.command:
+        cmd: newgrp docker
+        register: newgrp_result
+        ignore_errors: yes  # Skipped if user interaction is required
+
+    - name: Test Docker by running hello-world
+      ansible.builtin.command:
+        cmd: docker run hello-world
+      register: hello_world_result
+      failed_when: "'Hello from Docker!' not in hello_world_result.stdout"
+      ignore_errors: yes
+
+    - name: Enable Docker service
+      ansible.builtin.systemd:
+        name: docker.service
+        enabled: true
+        state: started
+
+    - name: Enable containerd service
+      ansible.builtin.systemd:
+        name: containerd.service
+        enabled: true
+        state: started
