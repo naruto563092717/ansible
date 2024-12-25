@@ -16,6 +16,8 @@
           deb-src https://mirrors.ustc.edu.cn/ubuntu/ focal-security main restricted universe multiverse
           deb https://mirrors.ustc.edu.cn/ubuntu/ focal-proposed main restricted universe multiverse
           deb-src https://mirrors.ustc.edu.cn/ubuntu/ focal-proposed main restricted universe multiverse
+    - name: Hold kernel-related packages
+      command: apt-mark hold linux-image-5.15.0-* linux-headers-5.15.0-* linux-modules-5.15.0-* linux-modules-extra-5.15.0-*
     - name: Update apt package cache
       apt:
         update_cache: yes
