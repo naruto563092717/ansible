@@ -9,5 +9,8 @@
     - name: Set LINK_TYPE_P1=2 for mt4129_pciconf1
       command: mlxconfig -d /dev/mst/mt4129_pciconf1 set LINK_TYPE_P1=2
 
-    - name: Restart openibd service to apply changes
-      command: /etc/init.d/openibd restart
+    - name: Restart OpenIBD service
+      service:
+        name: openibd
+        state: restarted
+        
