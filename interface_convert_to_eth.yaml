@@ -1,0 +1,20 @@
+---
+- name: Configure Mellanox devices with mlxconfig
+  hosts: all
+  become: yes
+  tasks:
+    - name: Set LINK_TYPE_P1=2 for mt4129_pciconf0
+      command: mlxconfig -d /dev/mst/mt4129_pciconf0 set LINK_TYPE_P1=2
+      args:
+        warn: false
+
+    - name: Set LINK_TYPE_P1=2 for mt4129_pciconf1
+      command: mlxconfig -d /dev/mst/mt4129_pciconf1 set LINK_TYPE_P1=2
+      args:
+        warn: false
+
+    - name: Restart OpenIBD service
+      service:
+        name: openibd
+        state: restarted
+        
