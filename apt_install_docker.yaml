@@ -66,8 +66,8 @@
     - name: Apply new group membership
       ansible.builtin.command:
         cmd: newgrp docker
-        register: newgrp_result
-        ignore_errors: yes
+      register: newgrp_result
+      ignore_errors: yes
 
     - name: Test Docker by running hello-world
       ansible.builtin.command:
