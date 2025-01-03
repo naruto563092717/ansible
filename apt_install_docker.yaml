@@ -57,11 +57,6 @@
       ansible.builtin.debug:
         msg: "Docker installed: {{ docker_version.stdout }}"
 
-    - name: Create docker group
-      ansible.builtin.group:
-        name: docker
-        state: present
-
     - name: Add current user to docker group
       ansible.builtin.user:
         name: "{{ ansible_user }}"
