@@ -67,7 +67,7 @@
       ansible.builtin.command:
         cmd: newgrp docker
         register: newgrp_result
-        ignore_errors: yes  # Skipped if user interaction is required
+        ignore_errors: yes
 
     - name: Test Docker by running hello-world
       ansible.builtin.command:
