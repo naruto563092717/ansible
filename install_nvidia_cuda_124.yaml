@@ -1,4 +1,3 @@
----
 - hosts: all
   become: yes
   tasks:
@@ -12,6 +11,7 @@
         --driver
       args:
         chdir: /home/ubuntu/nfs/cuda
+        creates: /usr/local/cuda-12.4/version.txt
       environment:
         ACCEPT_EULA: "accept"
       register: cuda_install_output
@@ -20,8 +20,8 @@
       debug:
         var: cuda_install_output.stdout
 
-    # Configure PATH and NVIDIA persistence daemon
-    - name: Add CUDA to PATH temporarily
+    # Configure PATH for CUDA
+    - name: Add CUDA to PATH system-wide
       lineinfile:
         path: /etc/profile.d/cuda.sh
         create: yes
@@ -29,14 +29,39 @@
         state: present
         mode: '0644'
 
-    - name: Apply CUDA PATH for current session
-      shell: "export PATH=/usr/local/cuda-12.4/bin${PATH:+:${PATH}}"
-      environment:
-        PATH: "/usr/local/cuda-12.4/bin:{{ ansible_env.PATH }}"
+    - name: Add CUDA to PATH for user
+      lineinfile:
+        path: ~/.profile
+        line: 'export PATH=/usr/local/cuda-12.4/bin${PATH:+:${PATH}}'
+        state: present
 
+    - name: Apply PATH changes for the current session
+      shell: source ~/.profile
+      args:
+        executable: /bin/bash
+
+    # Set CUDACXX Environment Variable
+    - name: Set CUDACXX environment variable globally
+      lineinfile:
+        path: ~/.bashrc
+        line: 'export CUDACXX=/usr/local/cuda-12.4/bin/nvcc'
+        state: present
+
+    - name: Apply CUDACXX changes for the current session
+      shell: source ~/.bashrc
+      args:
+        executable: /bin/bash
+
+    # Start NVIDIA Persistence Daemon
     - name: Start NVIDIA Persistence Daemon
-      command: "/usr/bin/nvidia-persistenced --verbose"
+      command: /usr/bin/nvidia-persistenced --verbose
+      register: persistenced_status
 
+    - name: Display NVIDIA Persistence Daemon status
+      debug:
+        var: persistenced_status.stdout
+
+    # GPU Direct Configuration
     - name: Load the `nvidia-peermem` kernel module
       modprobe:
         name: nvidia-peermem
