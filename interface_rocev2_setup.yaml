@@ -21,31 +21,18 @@
         value: 1
         state: present
 
-    - name: Configure ECN for NET devices
+    - name: Configure ECN for NET devices - Enable ECN for class 3
+      command: echo 1 > /sys/class/net/{{ item }}/ecn/roce_np/enable/3
       loop: "{{ NETs }}"
-      tasks:
-        - name: Enable ECN for class 3
-          command: echo 1 > /sys/class/net/{{ item }}/ecn/roce_np/enable/3
 
-        - name: Enable CNP L2 egress priority to 7
-          command: echo 7 > /sys/class/net/{{ item }}/ecn/roce_np/cnp_802p_prio
+    - name: Configure ECN for NET devices - Enable CNP L2 egress priority to 7
+      command: echo 7 > /sys/class/net/{{ item }}/ecn/roce_np/cnp_802p_prio
+      loop: "{{ NETs }}"
 
-        - name: Map CNP to DSCP 48
-          command: echo 48 > /sys/class/net/{{ item }}/ecn/roce_np/cnp_dscp
+    - name: Configure ECN for NET devices - Map CNP to DSCP 48
+      command: echo 48 > /sys/class/net/{{ item }}/ecn/roce_np/cnp_dscp
+      loop: "{{ NETs }}"
 
-        - name: Map PFC to priority 3
-          command: mlnx_qos -i {{ item }} --trust=dscp --pfc 0,0,0,1,0,0,0,0
-
-    - name: Configure RDMA devices for RoCEv2
-      loop: "{{ RDMAs }}"
-      tasks:
-        - name: Set mode to RoCEv2 on the NIC
-          command: cma_roce_mode -d {{ item }} -p 1 -m 2
-
-        - name: Set TOS(104) for RoCEv2 DATA
-          block:
-            - name: Configure cma_roce_tos
-              command: cma_roce_tos -d {{ item }} -t 104
-
-            - name: Set traffic class
-              command: echo 104 > /sys/class/infiniband/{{ item }}/tc/1/traffic_class
+    - name: Configure ECN for NET devices - Map PFC to priority 3
+      command: mlnx_qos -i {{ item }} --trust=dscp --pfc 0,0,0,1,0,0,0,0
+      loop: "{{ NETs }}"
