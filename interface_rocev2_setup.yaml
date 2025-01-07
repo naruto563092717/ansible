@@ -1,0 +1,55 @@
+---
+- name: Configure RDMA and ECN
+  hosts: localhost
+  gather_facts: no
+  become: yes
+  tasks:
+    - name: Get MST status
+      shell: mst status -v
+      register: mst_output
+
+    - name: Parse RDMA and NET devices
+      set_fact:
+        RDMAs: "{{ RDMAs | default([]) + [item.split()[3]] }}"
+        NETs: "{{ NETs | default([]) + [item.split()[4] | regex_replace('^net-', '')] }}"
+      with_items: "{{ mst_output.stdout_lines }}"
+      when: "'DEVICE_TYPE' in item or (item.split()[3] and item.split()[4])"
+
+    - name: Enable ECN globally
+      sysctl:
+        name: net.ipv4.tcp_ecn
+        value: 1
+        state: present
+
+    - name: Configure NET devices for ECN and PFC
+      with_items: "{{ NETs }}"
+      loop_control:
+        label: "{{ item }}"
+      block:
+        - name: Enable ECN for class 3
+          command: echo 1 > /sys/class/net/{{ item }}/ecn/roce_np/enable/3
+
+        - name: Enable CNP L2 egress priority to 7
+          command: echo 7 > /sys/class/net/{{ item }}/ecn/roce_np/cnp_802p_prio
+
+        - name: Map CNP to DSCP 48
+          command: echo 48 > /sys/class/net/{{ item }}/ecn/roce_np/cnp_dscp
+
+        - name: Map PFC to priority 3
+          command: mlnx_qos -i {{ item }} --trust=dscp --pfc 0,0,0,1,0,0,0,0
+
+    - name: Configure RDMA devices for RoCEv2
+      with_items: "{{ RDMAs }}"
+      loop_control:
+        label: "{{ item }}"
+      block:
+        - name: Set mode to RoCEv2 on the NIC
+          command: cma_roce_mode -d {{ item }} -p 1 -m 2
+
+        - name: Set TOS(104) for RoCEv2 DATA
+          block:
+            - name: Configure cma_roce_tos
+              command: cma_roce_tos -d {{ item }} -t 104
+
+            - name: Set traffic class
+              command: echo 104 > /sys/class/infiniband/{{ item }}/tc/1/traffic_class
