@@ -1,12 +1,26 @@
 ---
 - name: Configure RDMA and ECN
   hosts: localhost
-  gather_facts: no
+  gather_facts: yes
   become: yes
+  become_method: su
   tasks:
+    - name: Check if sudo is available
+      command: which sudo
+      register: sudo_check
+      ignore_errors: yes
+      changed_when: false
+
+    - name: Install sudo if not present
+      package:
+        name: sudo
+        state: present
+      when: sudo_check.rc != 0
+
     - name: Get MST status
       shell: mst status -v
       register: mst_output
+      become: yes
 
     - name: Parse RDMA and NET devices
       set_fact:
