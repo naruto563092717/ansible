@@ -21,11 +21,9 @@
         value: 1
         state: present
 
-    - name: Configure NET devices for ECN and PFC
-      with_items: "{{ NETs }}"
-      loop_control:
-        label: "{{ item }}"
-      block:
+    - name: Configure ECN for NET devices
+      loop: "{{ NETs }}"
+      tasks:
         - name: Enable ECN for class 3
           command: echo 1 > /sys/class/net/{{ item }}/ecn/roce_np/enable/3
 
@@ -39,10 +37,8 @@
           command: mlnx_qos -i {{ item }} --trust=dscp --pfc 0,0,0,1,0,0,0,0
 
     - name: Configure RDMA devices for RoCEv2
-      with_items: "{{ RDMAs }}"
-      loop_control:
-        label: "{{ item }}"
-      block:
+      loop: "{{ RDMAs }}"
+      tasks:
         - name: Set mode to RoCEv2 on the NIC
           command: cma_roce_mode -d {{ item }} -p 1 -m 2
 
