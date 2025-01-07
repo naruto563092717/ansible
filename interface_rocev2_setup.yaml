@@ -1,26 +1,19 @@
 ---
 - name: Configure RDMA and ECN
   hosts: localhost
-  gather_facts: yes
+  gather_facts: no
   become: yes
-  become_method: su
   tasks:
-    - name: Check if sudo is available
-      command: which sudo
-      register: sudo_check
+    - name: Check if mst tool is available
+      command: which mst
+      register: mst_check
       ignore_errors: yes
       changed_when: false
-
-    - name: Install sudo if not present
-      package:
-        name: sudo
-        state: present
-      when: sudo_check.rc != 0
 
     - name: Get MST status
       shell: mst status -v
       register: mst_output
-      become: yes
+      failed_when: mst_output.rc != 0
 
     - name: Parse RDMA and NET devices
       set_fact:
@@ -35,18 +28,26 @@
         value: 1
         state: present
 
-    - name: Configure ECN for NET devices - Enable ECN for class 3
-      command: echo 1 > /sys/class/net/{{ item }}/ecn/roce_np/enable/3
-      loop: "{{ NETs }}"
+    - name: Configure ECN settings for NET devices
+      block:
+        - name: Enable ECN for class 3
+          copy:
+            content: "1"
+            dest: "/sys/class/net/{{ item }}/ecn/roce_np/enable/3"
+          loop: "{{ NETs }}"
 
-    - name: Configure ECN for NET devices - Enable CNP L2 egress priority to 7
-      command: echo 7 > /sys/class/net/{{ item }}/ecn/roce_np/cnp_802p_prio
-      loop: "{{ NETs }}"
+        - name: Set CNP L2 egress priority to 7
+          copy:
+            content: "7"
+            dest: "/sys/class/net/{{ item }}/ecn/roce_np/cnp_802p_prio"
+          loop: "{{ NETs }}"
 
-    - name: Configure ECN for NET devices - Map CNP to DSCP 48
-      command: echo 48 > /sys/class/net/{{ item }}/ecn/roce_np/cnp_dscp
-      loop: "{{ NETs }}"
+        - name: Map CNP to DSCP 48
+          copy:
+            content: "48"
+            dest: "/sys/class/net/{{ item }}/ecn/roce_np/cnp_dscp"
+          loop: "{{ NETs }}"
 
-    - name: Configure ECN for NET devices - Map PFC to priority 3
-      command: mlnx_qos -i {{ item }} --trust=dscp --pfc 0,0,0,1,0,0,0,0
-      loop: "{{ NETs }}"
+        - name: Map PFC to priority 3
+          command: mlnx_qos -i {{ item }} --trust=dscp --pfc 0,0,0,1,0,0,0,0
+          loop: "{{ NETs }}"
