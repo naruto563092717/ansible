@@ -1,53 +1,106 @@
 ---
-- name: Configure RDMA and ECN
-  hosts: localhost
-  gather_facts: no
+- name: Configure ECN, CNP, PFC, and RoCEv2
+  hosts: all
   become: yes
   tasks:
-    - name: Check if mst tool is available
-      command: which mst
-      register: mst_check
-      ignore_errors: yes
-      changed_when: false
+    - name: Enable ECN for class 3 on ens948np0 and ens844np0
+      shell: |
+        echo 1 > /sys/class/net/ens948np0/ecn/roce_np/enable/3
+        echo 1 > /sys/class/net/ens844np0/ecn/roce_np/enable/3
 
-    - name: Get MST status
-      shell: mst status -v
-      register: mst_output
-      failed_when: mst_output.rc != 0
+    - name: Enable CNP L2 egress priority to 7 (enable CNP)
+      shell: |
+        echo 7 > /sys/class/net/ens948np0/ecn/roce_np/cnp_802p_prio
+        echo 7 > /sys/class/net/ens844np0/ecn/roce_np/cnp_802p_prio
 
-    - name: Parse RDMA and NET devices
-      set_fact:
-        RDMAs: "{{ RDMAs | default([]) + [item.split()[3]] }}"
-        NETs: "{{ NETs | default([]) + [item.split()[4] | regex_replace('^net-', '')] }}"
-      with_items: "{{ mst_output.stdout_lines }}"
-      when: "'DEVICE_TYPE' in item or (item.split()[3] and item.split()[4])"
+    - name: Map CNP to DSCP 48
+      shell: |
+        echo 48 > /sys/class/net/ens948np0/ecn/roce_np/cnp_dscp
+        echo 48 > /sys/class/net/ens844np0/ecn/roce_np/cnp_dscp
 
-    - name: Enable ECN globally
+    - name: Map PFC to priority 3 enable
+      shell: |
+        mlnx_qos -i ens948np0 --trust=dscp --pfc 0,0,0,1,0,0,0,0
+        mlnx_qos -i ens844np0 --trust=dscp --pfc 0,0,0,1,0,0,0,0
+
+    - name: Enable ECN for traffic
       sysctl:
         name: net.ipv4.tcp_ecn
         value: 1
         state: present
 
-    - name: Configure ECN settings for NET devices
-      block:
-        - name: Enable ECN for class 3
-          copy:
-            content: "1"
-            dest: "/sys/class/net/{{ item }}/ecn/roce_np/enable/3"
-          loop: "{{ NETs }}"
+    - name: Set mode to RoCEv2 on the NICs
+      shell: |
+        cma_roce_mode -d mlx5_0 -p 1 -m 2
+        cma_roce_mode -d mlx5_3 -p 1 -m 2
 
-        - name: Set CNP L2 egress priority to 7
-          copy:
-            content: "7"
-            dest: "/sys/class/net/{{ item }}/ecn/roce_np/cnp_802p_prio"
-          loop: "{{ NETs }}"
+    - name: Set TOS(104) = DSCP(26) for RoCEv2 DATA for RDMA-CM QPs
+      shell: |
+        cma_roce_tos -d mlx5_0 -t 104
+        cma_roce_tos -d mlx5_3 -t 104
 
-        - name: Map CNP to DSCP 48
-          copy:
-            content: "48"
-            dest: "/sys/class/net/{{ item }}/ecn/roce_np/cnp_dscp"
-          loop: "{{ NETs }}"
+    - name: Set TOS(104) = DSCP(26) for RoCEv2 DATA for RDMA Socket
+      shell: |
+        echo 104 > /sys/class/infiniband/mlx5_0/tc/1/traffic_class
+        echo 104 > /sys/class/infiniband/mlx5_3/tc/1/traffic_class
 
-        - name: Map PFC to priority 3
-          command: mlnx_qos -i {{ item }} --trust=dscp --pfc 0,0,0,1,0,0,0,0
-          loop: "{{ NETs }}"
+    - name: Verify ECN for class 3
+      shell: |
+        cat /sys/class/net/ens948np0/ecn/roce_np/enable/3
+        cat /sys/class/net/ens844np0/ecn/roce_np/enable/3
+      register: ecn_verify
+
+    - debug:
+        var: ecn_verify.stdout_lines
+
+    - name: Verify CNP L2 egress priority
+      shell: |
+        cat /sys/class/net/ens948np0/ecn/roce_np/cnp_802p_prio
+        cat /sys/class/net/ens844np0/ecn/roce_np/cnp_802p_prio
+      register: cnp_prio_verify
+
+    - debug:
+        var: cnp_prio_verify.stdout_lines
+
+    - name: Verify CNP DSCP Mapping
+      shell: |
+        cat /sys/class/net/ens948np0/ecn/roce_np/cnp_dscp
+        cat /sys/class/net/ens844np0/ecn/roce_np/cnp_dscp
+      register: cnp_dscp_verify
+
+    - debug:
+        var: cnp_dscp_verify.stdout_lines
+
+    - name: Verify PFC Mapping
+      shell: |
+        mlnx_qos -i ens948np0
+        mlnx_qos -i ens844np0
+      register: pfc_verify
+
+    - debug:
+        var: pfc_verify.stdout_lines
+
+    - name: Verify ECN for traffic
+      command: sysctl net.ipv4.tcp_ecn
+      register: ecn_traffic_verify
+
+    - debug:
+        var: ecn_traffic_verify.stdout_lines
+
+    - name: Verify RoCEv2 mode for NICs
+      shell: |
+        cma_roce_mode -d mlx5_0
+        cma_roce_mode -d mlx5_3
+      register: roce_mode_verify
+
+    - debug:
+        var: roce_mode_verify.stdout_lines
+
+    - name: Verify TOS/DSCP for RDMA Socket
+      shell: |
+        cat /sys/class/infiniband/mlx5_0/tc/1/traffic_class
+        cat /sys/class/infiniband/mlx5_3/tc/1/traffic_class
+      register: tos_socket_verify
+
+    - debug:
+        var: tos_socket_verify.stdout_lines
