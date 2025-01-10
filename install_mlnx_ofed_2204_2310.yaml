@@ -2,15 +2,6 @@
   hosts: all
   become: true
   tasks:
-    - name: Run the ofed_uninstall script
-      expect:
-        command: /usr/sbin/ofed_uninstall.sh
-        responses:
-          Do you want to continue.*: "y\n"
-      register: uninstall_output
-      async: 300  # Allow up to 300 seconds for the task to complete
-      poll: 10    # Check the task status every 10 seconds
-
     - name: Extract Mellanox OFED package
       unarchive:
         src: /home/ubuntu/nfs/MLNX_OFED/MLNX_OFED_LINUX-23.10-2.1.3.1-ubuntu22.04-x86_64.tgz
