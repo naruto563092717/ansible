@@ -4,7 +4,7 @@
   become: true
   vars:
     client_ip: "192.168.0.201"
-    install_script_path: "~/client/install.py"
+    install_script_path: "/home/ubuntu/client/install.py"
 
   tasks:
     - name: Run installation script
