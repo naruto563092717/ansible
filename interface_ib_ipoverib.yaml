@@ -20,9 +20,9 @@
     - name: Verify IP address on ibs844
       ansible.builtin.command:
         cmd: "ip addr show dev ibs844"
-      register: ens844np0_output
+      register: ibs844_output
 
     - name: Verify IP address on ibs948
       ansible.builtin.command:
         cmd: "ip addr show dev ibs948"
-      register: ens948np0_output
+      register: ibs948_output
