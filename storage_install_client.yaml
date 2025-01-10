@@ -1,0 +1,19 @@
+---
+- name: Install Client
+  hosts: all
+  become: true
+  vars:
+    client_ip: "192.168.0.201"
+    install_script_path: "~/client/install.py"
+
+  tasks:
+    - name: Run installation script
+      command: "python3 {{ install_script_path }} --ips={{ client_ip }} --force=True"
+      args:
+        chdir: "{{ ansible_env.HOME }}"
+      register: install_result
+
+    - name: Display installation result
+      debug:
+        var: install_result.stdout_lines
+      when: install_result.stdout_lines is defined
