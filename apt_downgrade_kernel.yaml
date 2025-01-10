@@ -1,0 +1,34 @@
+---
+- name: Configure kernel and GRUB settings
+  hosts: all
+  become: true
+  tasks:
+    - name: Hold kernel 5.15.0 packages
+      dpkg_selections:
+        name: "{{ item }}"
+        selection: hold
+      loop:
+        - linux-image-5.15.0-*
+        - linux-headers-5.15.0-*
+        - linux-modules-5.15.0-*
+        - linux-modules-extra-5.15.0-*
+
+    - name: Modify GRUB configuration
+      lineinfile:
+        path: /etc/default/grub
+        regexp: '^GRUB_DEFAULT='
+        line: 'GRUB_DEFAULT="Advanced options for Ubuntu>Ubuntu, with Linux 5.15.0-94-generic"'
+        backup: yes
+
+    - name: Update GRUB
+      command: update-grub
+      register: grub_update
+      changed_when: grub_update.rc == 0
+
+    - name: Reboot system
+      reboot:
+        msg: "Rebooting to apply GRUB changes"
+        reboot_timeout: 300
+        pre_reboot_delay: 5
+        post_reboot_delay: 30
+        test_command: uptime
