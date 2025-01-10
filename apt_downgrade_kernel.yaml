@@ -3,15 +3,17 @@
   hosts: all
   become: true
   tasks:
+    - name: Get list of installed 5.15.0 kernel packages
+      shell: dpkg -l | grep "^ii" | grep -E "linux-(image|headers|modules|modules-extra)-5\.15\.0-[0-9]+" | awk '{print $2}'
+      register: kernel_packages
+      changed_when: false
+
     - name: Hold kernel 5.15.0 packages
       dpkg_selections:
         name: "{{ item }}"
         selection: hold
-      loop:
-        - linux-image-5.15.0-*
-        - linux-headers-5.15.0-*
-        - linux-modules-5.15.0-*
-        - linux-modules-extra-5.15.0-*
+      loop: "{{ kernel_packages.stdout_lines }}"
+      when: kernel_packages.stdout_lines | length > 0
 
     - name: Modify GRUB configuration
       lineinfile:
