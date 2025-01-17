@@ -30,5 +30,6 @@
           - libboost-program-options-dev
           - gnupg
           - curl
+          - lldpad
         state: present
         force: yes
