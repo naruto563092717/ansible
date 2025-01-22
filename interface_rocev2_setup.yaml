@@ -2,6 +2,9 @@
 - name: Configure ECN, CNP, PFC, and RoCEv2
   hosts: all
   become: yes
+  vars:
+    ip_base1: "192.1.1"
+    ip_base2: "192.1.2"
   tasks:
     - name: Bring up interface ens844np0
       command: ip link set ens844np0 up
@@ -42,7 +45,67 @@
     - name: Display MTU for ens948np0
       ansible.builtin.debug:
         msg: "MTU for ens948np0: {{ mtu_ens948np0.stdout_lines }}"
-        
+
+    - name: Extract the last octet from inventory_hostname
+      ansible.builtin.set_fact:
+        node_octet: "{{ inventory_hostname.split('.')[2] }}"
+
+    - name: Add IP address to ens844np0
+      ansible.builtin.command:
+        cmd: "ip addr add {{ ip_base1 }}.{{ node_octet }}/24 dev ens844np0"
+
+    - name: Add IP address to ens948np0
+      ansible.builtin.command:
+        cmd: "ip addr add {{ ip_base2 }}.{{ node_octet }}/24 dev ens948np0"
+
+    - name: Verify IP address on ens844np0
+      ansible.builtin.command:
+        cmd: "ip addr show dev ens844np0"
+      register: ens844np0_output
+
+    - name: Verify IP address on ens948np0
+      ansible.builtin.command:
+        cmd: "ip addr show dev ens948np0"
+      register: ens948np0_output
+
+    - name: Extract the last octet from inventory_hostname
+      ansible.builtin.set_fact:
+        node_octet: "{{ inventory_hostname.split('.')[2] }}"
+
+    - name: Add route for 192.1.0.0/16 via 192.1.1.254 on ens844np0 to table 101
+      ansible.builtin.command:
+        cmd: "ip route add 192.1.0.0/16 via {{ ip_base1 }}.254 dev ens844np0 table 101"
+
+    - name: Add route for 192.1.0.0/16 via 192.1.2.254 on ens948np0 to table 102
+      ansible.builtin.command:
+        cmd: "ip route add 192.1.0.0/16 via {{ ip_base2 }}.254 dev ens948np0 table 102"
+
+    - name: Add ip rule for traffic from 192.1.1.33 to table 101
+      ansible.builtin.command:
+        cmd: "ip rule add from {{ ip_base1 }}.{{ node_octet }} table 101"
+
+    - name: Add ip rule for traffic from 192.1.2.33 to table 102
+      ansible.builtin.command:
+        cmd: "ip rule add from {{ ip_base2 }}.{{ node_octet }} table 102"
+
+    - name: Debug - Verify routes in table 101
+      ansible.builtin.command:
+        cmd: "ip route show table 101"
+      register: route_table_101
+
+    - name: Debug - Display routes from table 101
+      ansible.builtin.debug:
+        msg: "Routes in table 101: {{ route_table_101.stdout_lines }}"
+
+    - name: Debug - Verify routes in table 102
+      ansible.builtin.command:
+        cmd: "ip route show table 102"
+      register: route_table_102
+
+    - name: Debug - Display routes from table 102
+      ansible.builtin.debug:
+        msg: "Routes in table 102: {{ route_table_102.stdout_lines }}"
+
     - name: Enable ECN for class 3 on ens948np0 and ens844np0
       shell: |
         echo 1 > /sys/class/net/ens948np0/ecn/roce_np/enable/3
