@@ -3,6 +3,46 @@
   hosts: all
   become: yes
   tasks:
+    - name: Bring up interface ens844np0
+      command: ip link set ens844np0 up
+
+    - name: Bring up interface ens948np0
+      command: ip link set ens948np0 up
+
+    - name: Run ibdev2netdev to map ETH devices to network devices
+      command: ibdev2netdev
+      register: ibdev2netdev_output
+
+    - name: Display ibdev2netdev output
+      debug:
+        var: ibdev2netdev_output.stdout
+        
+    - name: Set MTU for ens844np0
+      ansible.builtin.command:
+        cmd: ip link set dev ens844np0 mtu 4200
+
+    - name: Set MTU for ens948np0
+      ansible.builtin.command:
+        cmd: ip link set dev ens948np0 mtu 4200
+
+    - name: Verify MTU for ens844np0
+      ansible.builtin.command:
+        cmd: ip link show dev ens844np0
+      register: mtu_ens844np0
+
+    - name: Display MTU for ens844np0
+      ansible.builtin.debug:
+        msg: "MTU for ens844np0: {{ mtu_ens844np0.stdout_lines }}"
+
+    - name: Verify MTU for ens948np0
+      ansible.builtin.command:
+        cmd: ip link show dev ens948np0
+      register: mtu_ens948np0
+
+    - name: Display MTU for ens948np0
+      ansible.builtin.debug:
+        msg: "MTU for ens948np0: {{ mtu_ens948np0.stdout_lines }}"
+        
     - name: Enable ECN for class 3 on ens948np0 and ens844np0
       shell: |
         echo 1 > /sys/class/net/ens948np0/ecn/roce_np/enable/3
