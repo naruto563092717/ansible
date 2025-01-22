@@ -9,10 +9,9 @@
       changed_when: false
 
     - name: Install Linux kernel .deb packages
-      ansible.builtin.shell: |
-        dpkg -i /home/ubuntu/nfs/kernel/linux-*.deb
+      ansible.builtin.shell: dpkg -i /home/ubuntu/nfs/kernel/linux-*.deb
       args:
-        warn: false
+        _uses_shell: true
       register: dpkg_install_result
 
     - name: Display dpkg install output
