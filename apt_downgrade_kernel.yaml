@@ -8,6 +8,17 @@
       register: kernel_packages
       changed_when: false
 
+    - name: Install Linux kernel .deb packages
+      ansible.builtin.shell: |
+        dpkg -i /home/ubuntu/nfs/kernel/linux-*.deb
+      args:
+        warn: false
+      register: dpkg_install_result
+
+    - name: Display dpkg install output
+      ansible.builtin.debug:
+        msg: "Output from {{ inventory_hostname }}:\n{{ dpkg_install_result.stdout }}"
+
     - name: Hold kernel 5.15.0 packages
       dpkg_selections:
         name: "{{ item }}"
