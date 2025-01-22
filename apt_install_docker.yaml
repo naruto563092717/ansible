@@ -63,13 +63,6 @@
         groups: docker
         append: yes
 
-    - name: Test Docker by running hello-world
-      ansible.builtin.command:
-        cmd: docker run hello-world
-      register: hello_world_result
-      failed_when: "'Hello from Docker!' not in hello_world_result.stdout"
-      ignore_errors: yes
-
     - name: Enable Docker service
       ansible.builtin.systemd:
         name: docker.service
