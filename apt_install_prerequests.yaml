@@ -31,5 +31,6 @@
           - gnupg
           - curl
           - lldpad
+          - apt-utils
         state: present
         force: yes
