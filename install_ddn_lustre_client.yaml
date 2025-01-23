@@ -1,0 +1,10 @@
+---
+- name: Install Lustre packages and restart exa-client-deploy service
+  hosts: all
+  become: yes
+  tasks:
+    - name: Install Lustre packages from /home/ubuntu/nfs/storage/ddn/
+      ansible.builtin.command:
+        cmd: dpkg -i /home/ubuntu/nfs/storage/ddn/lustre-*
+      args:
+        chdir: /home/ubuntu/nfs/storage/ddn/
