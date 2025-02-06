@@ -2,30 +2,16 @@
   hosts: all
   become: true
   tasks:
-    - name: Check if interfaces exist
-      shell: "ip link show {{ item }} 2>/dev/null || echo 'Interface not found'"
-      register: interface_check
-      changed_when: false
-      with_items:
-        - ibs948
-        - ibs844
-
     - name: Bring up interface ibs948
       command: ip link set ibs948 up
-      when: "'Interface not found' not in interface_check.results[0].stdout"
-      ignore_errors: true
 
     - name: Bring up interface ibs844
       command: ip link set ibs844 up
-      when: "'Interface not found' not in interface_check.results[1].stdout"
-      ignore_errors: true
 
     - name: Run ibdev2netdev to map IB devices to network devices
       command: ibdev2netdev
       register: ibdev2netdev_output
-      ignore_errors: true
 
     - name: Display ibdev2netdev output
       debug:
         var: ibdev2netdev_output.stdout
-      when: ibdev2netdev_output.rc is defined and ibdev2netdev_output.rc == 0
