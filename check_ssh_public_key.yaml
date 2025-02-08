@@ -1,0 +1,46 @@
+---
+- name: Check authorized_keys for ubuntu and root users
+  hosts: all
+  become: yes
+  tasks:
+    - name: Check ubuntu user authorized_keys
+      ansible.builtin.stat:
+        path: /home/ubuntu/.ssh/authorized_keys
+      register: ubuntu_key_stat
+
+    - name: Display ubuntu authorized_keys content
+      ansible.builtin.command: cat /home/ubuntu/.ssh/authorized_keys
+      register: ubuntu_keys
+      when: ubuntu_key_stat.stat.exists
+      changed_when: false
+
+    - name: Show ubuntu authorized_keys
+      ansible.builtin.debug:
+        msg: "{{ ubuntu_keys.stdout_lines }}"
+      when: ubuntu_key_stat.stat.exists
+
+    - name: Show message if ubuntu authorized_keys doesn't exist
+      ansible.builtin.debug:
+        msg: "authorized_keys file does not exist for ubuntu user"
+      when: not ubuntu_key_stat.stat.exists
+
+    - name: Check root user authorized_keys
+      ansible.builtin.stat:
+        path: /root/.ssh/authorized_keys
+      register: root_key_stat
+
+    - name: Display root authorized_keys content
+      ansible.builtin.command: cat /root/.ssh/authorized_keys
+      register: root_keys
+      when: root_key_stat.stat.exists
+      changed_when: false
+
+    - name: Show root authorized_keys
+      ansible.builtin.debug:
+        msg: "{{ root_keys.stdout_lines }}"
+      when: root_key_stat.stat.exists
+
+    - name: Show message if root authorized_keys doesn't exist
+      ansible.builtin.debug:
+        msg: "authorized_keys file does not exist for root user"
+      when: not root_key_stat.stat.exists
