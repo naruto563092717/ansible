@@ -3,8 +3,24 @@
   hosts: all
   become: yes
   tasks:
-    - name: Install Lustre packages from /home/ubuntu/nfs/storage/ddn/debs/5.15.0-94-generic/
-      ansible.builtin.command:
-        cmd: dpkg -i /home/ubuntu/nfs/storage/ddn/debs/5.15.0-94-generic/lustre-*
-      args:
-        chdir: /home/ubuntu/nfs/storage/ddn/debs/5.15.0-94-generic/
+    - name: Check if Lustre packages directory exists
+      ansible.builtin.stat:
+        path: /home/ubuntu/nfs/storage/ddn/debs/5.15.0-94-generic
+      register: lustre_dir
+
+    - name: Fail if Lustre packages directory is missing
+      ansible.builtin.fail:
+        msg: "Lustre packages directory not found at /home/ubuntu/nfs/storage/ddn/debs/5.15.0-94-generic"
+      when: not lustre_dir.stat.exists
+
+    - name: Install Lustre packages
+      ansible.builtin.shell:
+        cmd: dpkg -i lustre-*.deb
+        chdir: /home/ubuntu/nfs/storage/ddn/debs/5.15.0-94-generic
+      register: dpkg_result
+      ignore_errors: true
+
+    - name: Display dpkg error if installation failed
+      ansible.builtin.fail:
+        msg: "Failed to install Lustre packages: {{ dpkg_result.stderr }}"
+      when: dpkg_result.rc != 0
