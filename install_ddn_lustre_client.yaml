@@ -3,24 +3,24 @@
   hosts: all
   become: yes
   tasks:
-    - name: Check if Lustre packages directory exists
-      ansible.builtin.stat:
-        path: /home/ubuntu/nfs/storage/ddn/debs/5.15.0-94-generic
-      register: lustre_dir
+    - name: Install Lustre client modules package
+      ansible.builtin.apt:
+        deb: /home/ubuntu/nfs/storage/ddn/debs/5.15.0-94-generic/lustre-client-modules-5.15.0-94-generic_2.14.0-ddn136-1_amd64.deb
+      register: modules_install
 
-    - name: Fail if Lustre packages directory is missing
+    - name: Install Lustre client utils package
+      ansible.builtin.apt:
+        deb: /home/ubuntu/nfs/storage/ddn/debs/5.15.0-94-generic/lustre-client-utils_2.14.0-ddn136-1_amd64.deb
+      register: utils_install
+      when: modules_install is success
+
+    - name: Install Lustre dev package
+      ansible.builtin.apt:
+        deb: /home/ubuntu/nfs/storage/ddn/debs/5.15.0-94-generic/lustre-dev_2.14.0-ddn136-1_amd64.deb
+      register: dev_install
+      when: utils_install is success
+
+    - name: Check installation status
       ansible.builtin.fail:
-        msg: "Lustre packages directory not found at /home/ubuntu/nfs/storage/ddn/debs/5.15.0-94-generic"
-      when: not lustre_dir.stat.exists
-
-    - name: Install Lustre packages
-      ansible.builtin.shell:
-        cmd: dpkg -i lustre-*.deb
-        chdir: /home/ubuntu/nfs/storage/ddn/debs/5.15.0-94-generic
-      register: dpkg_result
-      ignore_errors: true
-
-    - name: Display dpkg error if installation failed
-      ansible.builtin.fail:
-        msg: "Failed to install Lustre packages: {{ dpkg_result.stderr }}"
-      when: dpkg_result.rc != 0
+        msg: "Failed to install one or more Lustre packages"
+      when: modules_install is failed or utils_install is failed or dev_install is failed
