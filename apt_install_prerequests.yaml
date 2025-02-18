@@ -32,6 +32,5 @@
           - curl
           - lldpad
           - apt-utils
-          - cpufrequtils
         state: present
         force: yes
