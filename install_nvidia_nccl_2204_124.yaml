@@ -24,6 +24,8 @@
     - name: Update package list
       apt:
         update_cache: yes
+      args:
+        warn: false
 
     # Step 5: Install NCCL libraries
     - name: Install NCCL libraries
