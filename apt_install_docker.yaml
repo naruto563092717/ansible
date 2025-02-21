@@ -110,3 +110,17 @@
       ansible.builtin.service:
         name: docker
         state: restarted
+
+    - name: Remove Docker apt source list
+      ansible.builtin.file:
+        path: /etc/apt/sources.list.d/docker.list
+        state: absent
+
+    - name: Remove NVIDIA Container Toolkit apt source list
+      ansible.builtin.file:
+        path: /etc/apt/sources.list.d/nvidia-container-toolkit.list
+        state: absent
+
+    - name: Update apt cache after cleanup
+      ansible.builtin.apt:
+        update_cache: yes
