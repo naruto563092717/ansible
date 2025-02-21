@@ -4,7 +4,7 @@
   become: yes
   tasks:
     - name: Install Lustre packages from /home/ubuntu/nfs/storage/ddn/debs/5.15.0-94-generic/
-      ansible.builtin.command:
+      ansible.builtin.shell:  # Changed from command to shell for wildcard expansion
         cmd: dpkg -i /home/ubuntu/nfs/storage/ddn/debs/5.15.0-94-generic/lustre-*
       args:
         chdir: /home/ubuntu/nfs/storage/ddn/debs/5.15.0-94-generic/
