@@ -3,6 +3,12 @@
   hosts: all
   become: yes
   tasks:
+    - name: Copy NCCL tests directory
+      copy:
+        src: /home/ubuntu/nfs/nccl/nccl-tests-2.13.11
+        dest: /home/ubuntu/
+        remote_src: yes
+
     - name: Build NCCL tests with MPI
       command: make MPI=1 MPI_HOME=/usr/lib/x86_64-linux-gnu/openmpi
       args:
