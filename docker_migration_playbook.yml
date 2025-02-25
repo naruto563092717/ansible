@@ -1,0 +1,77 @@
+---
+- name: Migrate Docker and Containerd data to new location
+  hosts: all
+  become: yes
+  vars:
+    new_base_path: "/home/ubuntu/nvme"
+    docker_new_path: "{{ new_base_path }}/docker"
+    containerd_new_path: "{{ new_base_path }}/containerd"
+    user: "ubuntu"
+    group: "ubuntu"
+
+  tasks:
+    - name: Stop Docker and Containerd services
+      systemd:
+        name: "{{ item }}"
+        state: stopped
+      loop:
+        - docker
+        - containerd
+
+    - name: Create new directories if they don't exist
+      file:
+        path: "{{ item }}"
+        state: directory
+        owner: "{{ user }}"
+        group: "{{ group }}"
+        mode: '0755'
+      loop:
+        - "{{ docker_new_path }}"
+        - "{{ containerd_new_path }}"
+
+    - name: Sync Docker data to new location
+      synchronize:
+        src: /var/lib/docker/
+        dest: "{{ docker_new_path }}"
+        recursive: yes
+
+    - name: Sync Containerd data to new location
+      synchronize:
+        src: /var/lib/containerd/
+        dest: "{{ containerd_new_path }}"
+        recursive: yes
+
+    - name: Update Docker daemon configuration
+      copy:
+        content: |
+          {
+            "data-root": "{{ docker_new_path }}"
+          }
+        dest: /etc/docker/daemon.json
+        mode: '0644'
+
+    - name: Update Containerd configuration
+      lineinfile:
+        path: /etc/containerd/config.toml
+        regexp: '^root = '
+        line: 'root = "{{ containerd_new_path }}"'
+        
+    - name: Set ownership of new directories
+      file:
+        path: "{{ item }}"
+        state: directory
+        owner: "{{ user }}"
+        group: "{{ group }}"
+        recurse: yes
+      loop:
+        - "{{ docker_new_path }}"
+        - "{{ containerd_new_path }}"
+
+    - name: Start Docker and Containerd services
+      systemd:
+        name: "{{ item }}"
+        state: started
+        daemon_reload: yes
+      loop:
+        - containerd
+        - docker
