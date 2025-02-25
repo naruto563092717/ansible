@@ -18,17 +18,6 @@
         - docker
         - containerd
 
-    - name: Create new directories if they don't exist
-      file:
-        path: "{{ item }}"
-        state: directory
-        owner: "{{ user }}"
-        group: "{{ group }}"
-        mode: '0755'
-      loop:
-        - "{{ docker_new_path }}"
-        - "{{ containerd_new_path }}"
-
     - name: Sync Docker data to new location
       synchronize:
         src: /var/lib/docker/
