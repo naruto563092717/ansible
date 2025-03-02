@@ -1,0 +1,26 @@
+- name: Unmount NFS
+  hosts: all
+  become: true
+  tasks:
+    - name: Unmount NFS share
+      command: umount -l /home/ubuntu/nfs
+      ignore_errors: yes
+
+    - name: Remove mount directory
+      file:
+        path: /home/ubuntu/nfs
+        state: absent
+
+    - name: Remove NFS entry from fstab
+      lineinfile:
+        path: /etc/fstab
+        regexp: '^10\.32\.32\.5:/home/user/nvme\s+/home/ubuntu/nfs\s+'
+        state: absent
+
+    - name: Verify mounts
+      shell: df -h
+      register: mount_status
+
+    - name: Display current mounts
+      debug:
+        var: mount_status.stdout
