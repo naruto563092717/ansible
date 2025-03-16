@@ -18,7 +18,7 @@
         mode: '0755'
 
     - name: Temporary mount NFS share
-      command: mount -t nfs 10.32.32.5:/home/user/nvme /home/ubuntu/nfs
+      command: mount -t nfs 10.32.32.5:/lustre/nfs /home/ubuntu/nfs
       args:
         warn: false
 
