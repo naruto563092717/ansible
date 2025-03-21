@@ -2,6 +2,13 @@
 - hosts: all
   become: yes
   tasks:
+    - name: Install required packages
+      apt:
+        name:
+          -gcc 
+          -make
+        state: present
+        force: yes  
     # Install CUDA
     - name: Run the CUDA installer script with driver
       command: >
