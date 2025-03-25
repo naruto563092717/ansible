@@ -4,8 +4,8 @@
     - name: Install required packages
       apt:
         name:
-          -gcc 
-          -make
+          - gcc 
+          - make
         state: present
         force: yes
     # Install CUDA
