@@ -3,8 +3,8 @@
   become: true
   tasks:
     - name: Update apt package cache
-    apt:
-      update_cache: yes
+      apt:
+        update_cache: yes
     - name: Install required packages
       apt:
         name:
