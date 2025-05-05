@@ -4,7 +4,7 @@
   become: yes
   vars:
     ip_base1: "192.1.1"
-    ip_base2: "192.1.2"
+    ip_base2: "192.1.0"
   tasks:
     - name: Bring up interface ens844np0
       command: ip link set ens844np0 up
@@ -52,11 +52,11 @@
 
     - name: Add IP address to ens844np0
       ansible.builtin.command:
-        cmd: "ip addr add {{ ip_base1 }}.{{ node_octet }}/24 dev ens844np0"
+        cmd: "ip addr add {{ ip_base1 }}.{{ node_octet }}/23 dev ens844np0"
 
     - name: Add IP address to ens948np0
       ansible.builtin.command:
-        cmd: "ip addr add {{ ip_base2 }}.{{ node_octet }}/24 dev ens948np0"
+        cmd: "ip addr add {{ ip_base2 }}.{{ node_octet }}/23 dev ens948np0"
 
     - name: Verify IP address on ens844np0
       ansible.builtin.command:
