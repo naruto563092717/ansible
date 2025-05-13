@@ -18,7 +18,7 @@
         mode: '0755'
 
     - name: Temporary mount NFS share
-      command: "mount -t nfs 10.32.32.5:/lustre/nfs /home/ubuntu/nfs"
+      command: "mount -t nfs 10.65.0.5:/mnt/jfs/nfs /home/ubuntu/nfs"
 
     - name: Verify disk usage
       shell: df -h
