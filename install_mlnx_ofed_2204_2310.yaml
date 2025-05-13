@@ -17,11 +17,6 @@
     - name: Show installation output
       debug:
         var: install_output.stdout
-
-    - name: Restart OpenIBD service
-      service:
-        name: openibd
-        state: restarted
         
     - name: Verify Mellanox OFED version
       command: cat /sys/module/mlx5_core/version
