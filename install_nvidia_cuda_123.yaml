@@ -39,7 +39,7 @@
     - name: Apply CUDA PATH for current session
       shell: "export PATH=/usr/local/cuda-12.3/bin${PATH:+:${PATH}}"
       environment:
-        PATH: "/usr/local/cuda-12.4/bin:{{ ansible_env.PATH }}"
+        PATH: "/usr/local/cuda-12.3/bin:{{ ansible_env.PATH }}"
 
     - name: Start NVIDIA Persistence Daemon
       command: "/usr/bin/nvidia-persistenced --verbose"
