@@ -2,8 +2,8 @@
   hosts: all
   become: true
   vars:
-    ip_base1: "192.168.0"
-    ip_base2: "192.168.1"
+    ip_base1: "192.168.1"
+    ip_base2: "192.168.0"
   tasks:
     - name: Extract the last octet from inventory_hostname
       ansible.builtin.set_fact:
